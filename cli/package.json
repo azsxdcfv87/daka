@@ -11,10 +11,10 @@
   "dependencies": {
     "cheerio": "^1.0.0",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7"
+    "dotenv": "^17.4.2"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
+    "jest": "^30.4.2",
     "prettier": "^3.4.2"
   }
 }

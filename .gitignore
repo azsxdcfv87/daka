@@ -142,3 +142,10 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+### Rust / Tauri ###
+target/
+app/src-tauri/gen/
+
+### macOS ###
+.DS_Store
