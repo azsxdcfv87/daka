@@ -5,8 +5,8 @@ on:
     # GitHub Actions cron uses UTC.
     # 01:30 UTC = 09:30 Asia/Taipei.
     - cron: '30 1 * * *'
-    # 10:30 UTC = 18:30 Asia/Taipei.
-    - cron: '30 10 * * *'
+    # 11:00 UTC = 19:00 Asia/Taipei.
+    - cron: '0 11 * * *'
 
 jobs:
   daka:
@@ -19,8 +19,6 @@ jobs:
       MODULE: ${{ secrets.MODULE}}
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
-      DELAY_START_MINS: 30
-      DELAY_END_MINS: 45
 
     steps:
       - name: Checkout
@@ -38,10 +36,16 @@ jobs:
 
       - name: Daka gogo
         if: github.event.schedule == '30 1 * * *'
+        env:
+          DELAY_START_MINS: 30
+          DELAY_END_MINS: 30
         run: node src/index.js S > result.md
 
       - name: Daka bye
-        if: github.event.schedule == '30 10 * * *'
+        if: github.event.schedule == '0 11 * * *'
+        env:
+          DELAY_START_MINS: 0
+          DELAY_END_MINS: 15
         run: node src/index.js E > result.md
 
       - name: Process Daka Result
