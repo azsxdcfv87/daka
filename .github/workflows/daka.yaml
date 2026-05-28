@@ -3,10 +3,10 @@ name: Daka
 on:
   schedule:
     # GitHub Actions cron uses UTC.
-    # 01:30 UTC = 09:30 Asia/Taipei.
-    - cron: '30 1 * * *'
-    # 11:00 UTC = 19:00 Asia/Taipei.
-    - cron: '0 11 * * *'
+    # 00:30 UTC = 08:30 Asia/Taipei.
+    - cron: '30 0 * * *'
+    # 10:30 UTC = 18:30 Asia/Taipei.
+    - cron: '30 10 * * *'
 
 jobs:
   daka:
@@ -35,14 +35,14 @@ jobs:
         run: npm install
 
       - name: Daka gogo
-        if: github.event.schedule == '30 1 * * *'
+        if: github.event.schedule == '30 0 * * *'
         env:
           DELAY_START_MINS: 30
           DELAY_END_MINS: 30
         run: node src/index.js S > result.md
 
       - name: Daka bye
-        if: github.event.schedule == '0 11 * * *'
+        if: github.event.schedule == '30 10 * * *'
         env:
           DELAY_START_MINS: 0
           DELAY_END_MINS: 15
