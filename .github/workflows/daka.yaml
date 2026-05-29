@@ -58,7 +58,7 @@ jobs:
             const fs = require('fs').promises;
 
             // Read the result file using promise-based fs
-            const result = await fs.readFile('./result.md', 'utf8');
+            const result = await fs.readFile('./cli/result.md', 'utf8');
 
             // Determine result status
             let resultStatus = 'failed';
@@ -97,7 +97,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.rest.issues.update({
+            await github.rest.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: ${{ steps.daka.outputs.result }},
