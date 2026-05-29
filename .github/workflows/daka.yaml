@@ -5,8 +5,8 @@ on:
     # GitHub Actions cron uses UTC.
     # 00:30 UTC = 08:30 Asia/Taipei.
     - cron: '30 0 * * *'
-    # 10:30 UTC = 18:30 Asia/Taipei.
-    - cron: '30 10 * * *'
+    # 10:00 UTC = 18:00 Asia/Taipei.
+    - cron: '0 10 * * *'
 
 jobs:
   daka:
@@ -42,7 +42,7 @@ jobs:
         run: node src/index.js S > result.md
 
       - name: Daka bye
-        if: github.event.schedule == '30 10 * * *'
+        if: github.event.schedule == '0 10 * * *'
         env:
           DELAY_START_MINS: 0
           DELAY_END_MINS: 15
