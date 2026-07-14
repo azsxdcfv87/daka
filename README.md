@@ -103,9 +103,63 @@ crontab -e
 
 #### GitHub Actions
 
-> **Note**: [GitHub Actions scheduled events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) may experience slight delays.
+The workflow ([.github/workflows/daka.yaml](.github/workflows/daka.yaml)) is triggered **only** via `workflow_dispatch`. GitHub's built-in `schedule:` cron was removed on purpose: scheduled events are [frequently delayed by tens of minutes to several hours](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule), which made the actual punch time drift unpredictably.
 
-Add your secrets (MODULE, USERNAME, PASSWORD) in your GitHub repository settings.
+Instead, an **external scheduler** calls the `workflow_dispatch` REST API at precise times. The punch schedule now lives entirely in that external scheduler, **not** in this repo.
+
+**1. Add repository secrets**
+
+In `Settings → Secrets and variables → Actions`, add `MODULE`, `USERNAME`, `PASSWORD`.
+
+**2. Create a GitHub token (PAT)**
+
+Create a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new):
+
+- Repository access → Only select repositories → `azsxdcfv87/daka`
+- Permissions → Repository permissions → Actions → **Read and write**
+
+Copy the token (`github_pat_...`). Keep it secret — it goes into the scheduler only, never into the repo.
+
+**3. Set up the external scheduler**
+
+Using [cron-job.org](https://cron-job.org) (free), create **two** cronjobs. Shared settings:
+
+| Field          | Value                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------- |
+| URL            | `https://api.github.com/repos/azsxdcfv87/daka/actions/workflows/daka.yaml/dispatches` |
+| Request method | `POST`                                                                                 |
+| Timezone       | `Asia/Taipei` (pick the real punch time directly — no UTC math)                        |
+
+Headers (replace `<PAT>` with your token):
+
+```
+Accept: application/vnd.github+json
+Authorization: Bearer <PAT>
+X-GitHub-Api-Version: 2022-11-28
+Content-Type: application/json
+```
+
+The two jobs differ only by time and body:
+
+| Job       | Time (Taipei) | Request body                                 |
+| --------- | ------------- | -------------------------------------------- |
+| Punch in  | e.g. 08:15    | `{"ref":"main","inputs":{"punch_type":"S"}}` |
+| Punch out | e.g. 19:00    | `{"ref":"main","inputs":{"punch_type":"E"}}` |
+
+**4. Test**
+
+```bash
+curl -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer <PAT>" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/azsxdcfv87/daka/actions/workflows/daka.yaml/dispatches \
+  -d '{"ref":"main","inputs":{"punch_type":"S"}}'
+```
+
+A successful dispatch returns **HTTP 204**; the run then appears under the **Actions** tab. The actual punch happens ~30–60s after the trigger (runner startup + install + run).
+
+> **Reminder**: if the scheduler is down or the PAT expires, punching silently stops. Enable failure notifications in cron-job.org, and note the PAT's expiry date.
 
 #### Docker
 
