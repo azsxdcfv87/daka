@@ -1,13 +1,10 @@
 name: Daka
 
 on:
-  schedule:
-    # GitHub Actions cron uses UTC.
-    # 00:15 UTC = 08:15 Asia/Taipei.
-    # Run early so GitHub Actions queue delays still usually finish before 10:00.
-    - cron: '15 0 * * *'
-    # 11:00 UTC = 19:00 Asia/Taipei.
-    - cron: '0 11 * * *'
+  # Punch times are driven by an EXTERNAL scheduler (e.g. cron-job.org) that
+  # calls the workflow_dispatch REST API at precise times. GitHub's built-in
+  # `schedule:` was removed on purpose: it is frequently delayed by hours,
+  # which made the punch time drift. See README / setup notes.
   workflow_dispatch:
     inputs:
       punch_type:
@@ -47,17 +44,7 @@ jobs:
         run: npm install
 
       - name: Resolve punch type
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "PUNCH_TYPE=${{ inputs.punch_type }}" >> "$GITHUB_ENV"
-          elif [ "${{ github.event.schedule }}" = "15 0 * * *" ]; then
-            echo "PUNCH_TYPE=S" >> "$GITHUB_ENV"
-          elif [ "${{ github.event.schedule }}" = "0 11 * * *" ]; then
-            echo "PUNCH_TYPE=E" >> "$GITHUB_ENV"
-          else
-            echo "Unsupported schedule: ${{ github.event.schedule }}" >&2
-            exit 1
-          fi
+        run: echo "PUNCH_TYPE=${{ inputs.punch_type }}" >> "$GITHUB_ENV"
 
       - name: Daka
         run: node src/index.js "$PUNCH_TYPE" > result.md
